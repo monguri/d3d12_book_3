@@ -201,7 +201,7 @@ void HelloGeometryShaderApp::PrepareComputeResource()
   descRange.BaseShaderRegister = 0;
   array<CD3DX12_ROOT_PARAMETER, 2> rootParams;
   rootParams[0].InitAsDescriptorTable(1, &descRange);
-  rootParams[1].InitAsUnorderedAccessView(1); // RWStructuredBuffer—p
+  rootParams[1].InitAsUnorderedAccessView(0); // RWStructuredBuffer—p
 
   CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
   rootSignatureDesc.Init(
@@ -213,6 +213,21 @@ void HelloGeometryShaderApp::PrepareComputeResource()
   D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signature, &errBlob);
   HRESULT hr = m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_csSignature));
   ThrowIfFailed(hr, "CreateRootSignature failed.");
+
+  std::vector<std::wstring> flags;
+  std::vector<Shader::DefineMacro> defines;
+  Shader shaderCS;
+  shaderCS.load(L"computeVB.hlsl", Shader::Compute, L"main", flags, defines);
+  {
+    D3D12_COMPUTE_PIPELINE_STATE_DESC computeDesc{};
+    computeDesc.CS = CD3DX12_SHADER_BYTECODE(shaderCS.getCode().Get());
+    computeDesc.pRootSignature = m_csSignature.Get();
+
+    PipelineState pipeline;
+    hr = m_device->CreateComputePipelineState(&computeDesc, IID_PPV_ARGS(&pipeline));
+    ThrowIfFailed(hr, "CreateComputePipelineState failed.");
+    m_pipelines["compupteVB"] = pipeline;
+  }
 }
 
 void HelloGeometryShaderApp::Render()
