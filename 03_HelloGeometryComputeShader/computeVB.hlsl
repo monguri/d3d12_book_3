@@ -11,14 +11,17 @@ struct PositionNormal
 
 RWStructuredBuffer<PositionNormal> vertices : register(u0);
 
-[numthreads(1,1,1)]
+[numthreads(16,1,1)]
 void main( uint3 dtid : SV_DispatchThreadID)
 {
-	if (counter > 0)
+	if (dtid.x < 1178) // _countof(TeapotModel::TeapotVerticesPN)
 	{
-		vertices[dtid.x].pos.y -= sin((counter - 1) * 0.1f);
-	}
+		if (counter > 0)
+		{
+			vertices[dtid.x].pos.y -= sin((counter - 1) * 0.1f);
+		}
 
-	vertices[dtid.x].pos.y += sin(counter * 0.1f);
+		vertices[dtid.x].pos.y += sin(counter * 0.1f);
+	}
 }
 

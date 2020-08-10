@@ -289,7 +289,7 @@ void HelloGeometryShaderApp::Render()
   m_commandList->SetPipelineState(m_pipelines["computeVB"].Get());
   m_commandList->SetComputeRootConstantBufferView(0, m_counterCB->GetGPUVirtualAddress());
   m_commandList->SetComputeRootUnorderedAccessView(1, m_model.resourceVB->GetGPUVirtualAddress());
-  int groupX = _countof(TeapotModel::TeapotVerticesPN);
+  int groupX = _countof(TeapotModel::TeapotVerticesPN) / 16 + 1;
   m_commandList->Dispatch(groupX, 1, 1);
 
   // UAV -> VB へステートを戻す
