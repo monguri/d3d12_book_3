@@ -195,16 +195,13 @@ void HelloGeometryShaderApp::PreparePipeline()
 
 void HelloGeometryShaderApp::PrepareComputeResource()
 {
-  D3D12_DESCRIPTOR_RANGE descRange0, descRange1{};
-  descRange0.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-  descRange0.NumDescriptors = 1;
-  descRange0.BaseShaderRegister = 0;
-  descRange1.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-  descRange1.NumDescriptors = 1;
-  descRange1.BaseShaderRegister = 0;
+  D3D12_DESCRIPTOR_RANGE descRange{};
+  descRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+  descRange.NumDescriptors = 1;
+  descRange.BaseShaderRegister = 0;
   array<CD3DX12_ROOT_PARAMETER, 2> rootParams;
-  rootParams[0].InitAsDescriptorTable(1, &descRange0);
-  rootParams[1].InitAsDescriptorTable(1, &descRange1);
+  rootParams[0].InitAsDescriptorTable(1, &descRange);
+  rootParams[1].InitAsUnorderedAccessView(1); // RWStructuredBuffer—p
 
   CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
   rootSignatureDesc.Init(
