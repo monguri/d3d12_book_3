@@ -49,6 +49,7 @@ void HelloGeometryShaderApp::Prepare()
 
   PrepareTeapot();
   PreparePipeline();
+  PrepareComputeResource();
 }
 
 void HelloGeometryShaderApp::Cleanup()
@@ -192,6 +193,30 @@ void HelloGeometryShaderApp::PreparePipeline()
   }
 }
 
+void HelloGeometryShaderApp::PrepareComputeResource()
+{
+  D3D12_DESCRIPTOR_RANGE descRange0, descRange1{};
+  descRange0.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+  descRange0.NumDescriptors = 1;
+  descRange0.BaseShaderRegister = 0;
+  descRange1.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+  descRange1.NumDescriptors = 1;
+  descRange1.BaseShaderRegister = 0;
+  array<CD3DX12_ROOT_PARAMETER, 2> rootParams;
+  rootParams[0].InitAsDescriptorTable(1, &descRange0);
+  rootParams[1].InitAsDescriptorTable(1, &descRange1);
+
+  CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+  rootSignatureDesc.Init(
+  UINT(rootParams.size()), rootParams.data(),
+  0, nullptr,
+  D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+  ComPtr<ID3DBlob> signature, errBlob;
+  D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &signature, &errBlob);
+  HRESULT hr = m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_csSignature));
+  ThrowIfFailed(hr, "CreateRootSignature failed.");
+}
 
 void HelloGeometryShaderApp::Render()
 {

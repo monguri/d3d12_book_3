@@ -30,6 +30,7 @@ private:
   void CreateRootSignatures();
   void PrepareTeapot();
   void PreparePipeline();
+  void PrepareComputeResource();
 
   void RenderHUD();
 private:
@@ -38,6 +39,8 @@ private:
 
   ComPtr<ID3D12RootSignature> m_rootSignature;
   std::vector<Buffer> m_sceneParameterCB;
+
+  ComPtr<ID3D12RootSignature> m_csSignature;
 
   using PipelineState = ComPtr<ID3D12PipelineState>;
   std::unordered_map<std::string, PipelineState> m_pipelines;
