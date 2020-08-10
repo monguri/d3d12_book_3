@@ -41,11 +41,14 @@ private:
   std::vector<Buffer> m_sceneParameterCB;
 
   ComPtr<ID3D12RootSignature> m_csSignature;
+  Buffer m_counterCB;
 
   using PipelineState = ComPtr<ID3D12PipelineState>;
   std::unordered_map<std::string, PipelineState> m_pipelines;
 
   D3D12_CPU_DESCRIPTOR_HANDLE m_vbUAVHandle;
+
+  uint32_t m_counter = 0;
 
   enum DrawMode
   {

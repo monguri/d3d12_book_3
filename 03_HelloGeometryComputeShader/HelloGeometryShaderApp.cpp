@@ -195,12 +195,13 @@ void HelloGeometryShaderApp::PreparePipeline()
 
 void HelloGeometryShaderApp::PrepareComputeResource()
 {
-  D3D12_DESCRIPTOR_RANGE descRange{};
-  descRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-  descRange.NumDescriptors = 1;
-  descRange.BaseShaderRegister = 0;
+  // 定数バッファ作成
+  auto cbDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(m_counter));
+  m_counterCB = CreateConstantBuffers(cbDesc, 1)[0];
+
+  // ルートシグネチャ作成
   array<CD3DX12_ROOT_PARAMETER, 2> rootParams;
-  rootParams[0].InitAsDescriptorTable(1, &descRange);
+  rootParams[0].InitAsConstantBufferView(0);
   rootParams[1].InitAsUnorderedAccessView(0); // RWStructuredBuffer用
 
   CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
@@ -214,6 +215,7 @@ void HelloGeometryShaderApp::PrepareComputeResource()
   HRESULT hr = m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_csSignature));
   ThrowIfFailed(hr, "CreateRootSignature failed.");
 
+  // パイプラインステート作成
   std::vector<std::wstring> flags;
   std::vector<Shader::DefineMacro> defines;
   Shader shaderCS;
@@ -226,7 +228,7 @@ void HelloGeometryShaderApp::PrepareComputeResource()
     PipelineState pipeline;
     hr = m_device->CreateComputePipelineState(&computeDesc, IID_PPV_ARGS(&pipeline));
     ThrowIfFailed(hr, "CreateComputePipelineState failed.");
-    m_pipelines["compupteVB"] = pipeline;
+    m_pipelines["computeVB"] = pipeline;
   }
 }
 
@@ -272,6 +274,33 @@ void HelloGeometryShaderApp::Render()
   m_commandList->RSSetViewports(1, &viewport);
   m_commandList->RSSetScissorRects(1, &scissorRect);
 
+  // コンピュートパス
+  // VB -> UAV へステートを変える
+  auto barrierVBtoUAV = CD3DX12_RESOURCE_BARRIER::Transition(
+    m_model.resourceVB.Get(),
+    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+    D3D12_RESOURCE_STATE_UNORDERED_ACCESS
+  );
+  m_commandList->ResourceBarrier(1, &barrierVBtoUAV);
+
+  WriteToUploadHeapMemory(m_counterCB.Get(), sizeof(m_counter), &m_counter);
+  m_counter++;
+  m_commandList->SetComputeRootSignature(m_csSignature.Get());
+  m_commandList->SetPipelineState(m_pipelines["computeVB"].Get());
+  m_commandList->SetComputeRootConstantBufferView(0, m_counterCB->GetGPUVirtualAddress());
+  m_commandList->SetComputeRootUnorderedAccessView(1, m_model.resourceVB->GetGPUVirtualAddress());
+  int groupX = _countof(TeapotModel::TeapotVerticesPN);
+  m_commandList->Dispatch(groupX, 1, 1);
+
+  // UAV -> VB へステートを戻す
+  auto barrierUAVtoVB = CD3DX12_RESOURCE_BARRIER::Transition(
+    m_model.resourceVB.Get(),
+    D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER 
+  );
+  m_commandList->ResourceBarrier(1, &barrierUAVtoVB);
+
+  // グラフィックスパス
   auto imageIndex = m_swapchain->GetCurrentBackBufferIndex();
   m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
   WriteToUploadHeapMemory(m_sceneParameterCB[imageIndex].Get(), sizeof(ShaderParameters), &m_scenePatameters);
