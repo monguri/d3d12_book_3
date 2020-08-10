@@ -147,6 +147,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\Camera.cpp" />
+    <ClCompile Include="..\common\D3D12AppBase.cpp" />
+    <ClCompile Include="..\common\imgui\examples\imgui_impl_dx12.cpp" />
+    <ClCompile Include="..\common\imgui\examples\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\common\imgui\imgui.cpp" />
+    <ClCompile Include="..\common\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\common\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\common\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\common\Swapchain.cpp" />
+    <ClCompile Include="HelloGeometryShaderApp.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\Camera.h" />
+    <ClInclude Include="..\common\D3D12AppBase.h" />
+    <ClInclude Include="..\common\D3D12BookUtil.h" />
+    <ClInclude Include="..\common\d3dx12.h" />
+    <ClInclude Include="..\common\DescriptorManager.h" />
+    <ClInclude Include="..\common\imgui\examples\imgui_impl_dx12.h" />
+    <ClInclude Include="..\common\imgui\examples\imgui_impl_win32.h" />
+    <ClInclude Include="..\common\imgui\imconfig.h" />
+    <ClInclude Include="..\common\imgui\imgui.h" />
+    <ClInclude Include="..\common\imgui\imgui_internal.h" />
+    <ClInclude Include="..\common\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\common\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\common\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\common\Swapchain.h" />
+    <ClInclude Include="..\common\TeapotModel.h" />
+    <ClInclude Include="HelloGeometryShaderApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
