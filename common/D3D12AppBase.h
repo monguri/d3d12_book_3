@@ -82,7 +82,7 @@ public:
 
   // 単純モデルのデータをGPUへ転送.
   template<class T>
-  ModelData CreateSimpleModel(const std::vector<T>& vertices, const std::vector<uint32_t>& indices)
+  ModelData CreateSimpleModel(const std::vector<T>& vertices, const std::vector<uint32_t>& indices, bool isComputable = false)
   {
     ModelData model;
     auto bufferSize = uint32_t(sizeof(T)*vertices.size());
@@ -90,7 +90,18 @@ public:
     auto srcHeapType = D3D12_HEAP_TYPE_UPLOAD;
     auto dstHeapType = D3D12_HEAP_TYPE_DEFAULT;
 
+	if (isComputable)
+	{
+	  vbDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+	}
+
     model.resourceVB = CreateResource(vbDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, dstHeapType);
+
+	if (isComputable)
+	{
+	  vbDesc.Flags &= ~D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+	}
+
     auto uploadVB = CreateResource(vbDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, srcHeapType);
     WriteToUploadHeapMemory(uploadVB.Get(), bufferSize, vertices.data());
 
@@ -104,11 +115,17 @@ public:
     command->CopyResource(model.resourceVB.Get(), uploadVB.Get());
     command->CopyResource(model.resourceIB.Get(), uploadIB.Get());
 
+	auto dstVBResourceState = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	if (isComputable)
+	{
+	  dstVBResourceState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	}
+
     D3D12_RESOURCE_BARRIER barriers[] = {
       CD3DX12_RESOURCE_BARRIER::Transition(
         model.resourceVB.Get(), 
         D3D12_RESOURCE_STATE_COPY_DEST,
-        D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
+        dstVBResourceState),
       CD3DX12_RESOURCE_BARRIER::Transition(
         model.resourceIB.Get(),
         D3D12_RESOURCE_STATE_COPY_DEST,
