@@ -83,7 +83,25 @@ void HelloGeometryShaderApp::PrepareTeapot()
 {
   std::vector<TeapotModel::Vertex> vertices(std::begin(TeapotModel::TeapotVerticesPN), std::end(TeapotModel::TeapotVerticesPN));
   std::vector<UINT> indices(std::begin(TeapotModel::TeapotIndices), std::end(TeapotModel::TeapotIndices));
-  m_model = CreateSimpleModel(vertices, indices);
+  bool isComputable = true;
+  m_model = CreateSimpleModel(vertices, indices, isComputable);
+
+  D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
+  uavDesc.Format = DXGI_FORMAT_UNKNOWN; // Buffer—p
+  uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER; // Buffer—p
+  uavDesc.Buffer.FirstElement = 0;
+  uavDesc.Buffer.NumElements = _countof(TeapotModel::TeapotVerticesPN);
+  uavDesc.Buffer.StructureByteStride = sizeof(TeapotModel::Vertex);
+  uavDesc.Buffer.CounterOffsetInBytes = 0;
+  uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+  m_vbUAVHandle = m_heap->Alloc();
+  m_device->CreateUnorderedAccessView(
+    m_model.resourceVB.Get(),
+    nullptr,
+    &uavDesc,
+    m_vbUAVHandle
+  );
 
   auto cbDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(ShaderParameters));
   m_sceneParameterCB = CreateConstantBuffers(cbDesc);

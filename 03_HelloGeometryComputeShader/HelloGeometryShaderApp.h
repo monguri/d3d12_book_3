@@ -42,6 +42,8 @@ private:
   using PipelineState = ComPtr<ID3D12PipelineState>;
   std::unordered_map<std::string, PipelineState> m_pipelines;
 
+  D3D12_CPU_DESCRIPTOR_HANDLE m_vbUAVHandle;
+
   enum DrawMode
   {
     DrawMode_Flat,
